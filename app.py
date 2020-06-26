@@ -86,11 +86,13 @@ def declare_models(selected_precision,models_path):
 
 def get_load_time():
     global df
+
     #LOADING MODELS and BENCHMARKING
     #Face detection  
     fd_start_load_time=time.time()
     fd.load_model()
     df["face_detection"]["loading_time"] = round(time.time()-fd_start_load_time,3)
+    
 
     #Facial landmarks detection
     fl_start_load_time=time.time()
@@ -108,8 +110,14 @@ def get_load_time():
     df["gaze_estimation"]["loading_time"] = round(time.time()-gaze_start_load_time,3)
     
 
+    for model in fd:
+        print ("The model load time for the % model is %" % model, model["loading_time"])
 
-def get_inference_coordinates(batch):
+
+     
+
+
+def inference_get_coordinates(batch):
     """
     This Funtion goes through each models and caluclates the inference time.
 
@@ -132,12 +140,12 @@ def get_inference_coordinates(batch):
     cropped_face_img = image[face_coords[0][1]:face_coords[0][3], 
                         face_coords[0][0]:face_coords[0][2]]
     
-    #GETTING CROPPED EYES and measure time.
+    #GETTING CROPPED EYES and measure time from cropped face
     fl_start_inference_time=time.time()
     landmarks, left_eye, right_eye = fl.predict(cropped_face_img) #inference
     df["face_landmarks"]["inference_time"] += round(time.time()-fl_start_inference_time,3)
     
-    #GETTING POSE ANGLES and measure time.
+    #GETTING POSE ANGLES and measure time from cropped face
     hp_start_inference_time=time.time()
     head_pose_angles = hp.predict(cropped_face_img) #inference
     df["headpose_estimation"]["inference_time"] += round(time.time()-hp_start_inference_time,3)
@@ -155,16 +163,21 @@ def get_inference_coordinates(batch):
     value_dic = {"Face coordinates: ": face_coords, 
                     "Face landmarks (eyes only): ":landmarks,
                     "Head pose angels: ":head_pose_angles,
-                    "Gaze estimation values: ":gaze_outputs,
-                    "Accum inference time(s): ": round(df.iloc[1,:].values.sum(),3)}
-    print_values(output,value_dic)
-
-
+                    "Gaze estimation values: ":gaze_outputs}
+    
+    #Prinitng on Screen
+    y_pos = 10
+    for value in value_dic:
+        text = value+str(dict[value])
+        y_pos+=20
+        cv2.putText(output_image, str(text), (20,y_pos), cv2.FONT_HERSHEY_PLAIN, 0.5, (128, 0, 128), 1)
 
     cv2.imshow("Frame",output)
     cv2.waitKey(1)
 
     return gaze_outputs[0][0], gaze_outputs[0][1]
+    
+
 
 def print_values(output_image,dict):
     y_pos = 10
@@ -191,18 +204,13 @@ def main():
     for batch in feed.next_batch():
         if batch is not None: 
             #MOVING THE MOUSE
-            x_coord, y_coord  = get_inference_coordinates(batch)
+            x_coord, y_coord  = inference_get_coordinates(batch)
             controller.move(x_coord,y_coord)
         else:
             feed.close()
             break
     
-    #Saving perfomance stats
-    df = round(df,3)
-    saving_path = "stats_{}.csv".format(args.model_precision)
-    df.to_csv(saving_path)
-    print("Stats saved as: ", saving_path)
-
+    
     print("Done")
 
 if __name__ == "__main__":
