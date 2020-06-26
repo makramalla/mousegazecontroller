@@ -92,25 +92,26 @@ def get_load_time():
     fd_start_load_time=time.time()
     fd.load_model()
     df["face_detection"]["loading_time"] = round(time.time()-fd_start_load_time,3)
-    print ("The model load time for the FaceDetection Model is %" % df["face_detection"]["loading_time"])
+    print(df["face_detection"]["loading_time"])
+    print("The model load time for the FaceDetection Model is %s seconds" % df["face_detection"]["loading_time"])
 
     #Facial landmarks detection
     fl_start_load_time=time.time()
     fl.load_model()
     df["face_landmarks"]["loading_time"] = round(time.time()-fl_start_load_time,3)
-    print ("The model load time for the LandMarks Model is %" % df["face_landmarks"]["loading_time"])
+    print("The model load time for the LandMarks Model is %s seconds" % df["face_landmarks"]["loading_time"])
 
     #Head pose estimation
     hp_start_load_time=time.time() 
     hp.load_model()
     df["headpose_estimation"]["loading_time"] = round(time.time()-hp_start_load_time,3)
-    print ("The model load time for the HeadPoseEstimation Model is %" % df["headpose_estimation"]["loading_time"])
+    print("The model load time for the HeadPoseEstimation Model is %s seconds" % df["headpose_estimation"]["loading_time"])
 
     #Gaze estimation model
     gaze_start_load_time=time.time() 
     gz.load_model()
     df["gaze_estimation"]["loading_time"] = round(time.time()-gaze_start_load_time,3)
-    print ("The model load time for the GazeEstimation Model is %" % df["gaze_estimation"]["loading_time"])
+    print("The model load time for the GazeEstimation Model is %s seconds" % df["gaze_estimation"]["loading_time"])
 
     
     
@@ -133,7 +134,7 @@ def inference_get_coordinates(batch):
     fd_start_inference_time=time.time()
     face_coords, image = fd.predict(batch) 
     df["face_detection"]["inference_time"] += round(time.time()-fd_start_inference_time,3)
-
+    print("The model inference time for the FaceDetection Model is %s seconds" % df["face_detection"]["inference_time"])
     #Crop the detcted Face
     cropped_face_img = image[face_coords[0][1]:face_coords[0][3], 
                         face_coords[0][0]:face_coords[0][2]]
@@ -142,18 +143,19 @@ def inference_get_coordinates(batch):
     fl_start_inference_time=time.time()
     landmarks, left_eye, right_eye = fl.predict(cropped_face_img) #inference
     df["face_landmarks"]["inference_time"] += round(time.time()-fl_start_inference_time,3)
-
+    print("The model inference time for the LandMarks Model is %s seconds" % df["face_landmarks"]["inference_time"])
     #GETTING POSE ANGLES and measure time from cropped face
     hp_start_inference_time=time.time()
     head_pose_angles = hp.predict(cropped_face_img) #inference
     df["headpose_estimation"]["inference_time"] += round(time.time()-hp_start_inference_time,3)
+    print("The model inference time for the HeadPose Model is %s seconds" % df["headpose_estimation"]["inference_time"])
     #print(head_pose_output)
 
     #RUNNING GAZE ESTIMATION and measure time.
     gaze_start_inference_time=time.time()
     gaze_outputs = gz.predict(left_eye, right_eye, head_pose_angles) #inference
     df["gaze_estimation"]["inference_time"] += round(time.time()-gaze_start_inference_time,3)
-    
+    print("The model inference time for the GazeEstimation Model is %s seconds" % df["gaze_estimation"]["inference_time"])
     #Printing values on screen
     #print("gaze model outputs: ",gaze_outputs)
     output = cv2.resize(output, (1080, 600), interpolation = cv2.INTER_AREA)
@@ -166,9 +168,9 @@ def inference_get_coordinates(batch):
     #Prinitng on Screen
     y_pos = 10
     for value in value_dic:
-        text = value+str(dict[value])
+        text = value+str(value_dic[value])
         y_pos+=20
-        cv2.putText(output_image, str(text), (20,y_pos), cv2.FONT_HERSHEY_PLAIN, 0.5, (128, 0, 128), 1)
+        cv2.putText(output, str(text), (20,y_pos), cv2.FONT_HERSHEY_PLAIN, 0.5, (128, 0, 128), 1)
 
     cv2.imshow("Frame",output)
     cv2.waitKey(1)
