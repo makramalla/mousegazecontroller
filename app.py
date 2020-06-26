@@ -1,3 +1,13 @@
+"""
+A lot of this code is inspired from the follwing Repos:
+
+https://github.com/CJRiverFlow/final_project
+https://github.com/Eslam26/Computer-Pointer-Controller/tree/master
+https://github.com/lilliCao/mouse_controller
+
+"""
+
+
 import cv2
 import time
 import pandas as pd
@@ -56,11 +66,6 @@ def declare_models(selected_precision,models_path):
     valid_values = {"FP32":"FP32",
                     "FP16":"FP16",}
     
-    #Unique option for face detection.
-    
-    
-    fd_model = "face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001"
-
     #Applying user selection.
     if selected_precision in valid_values:
         fland_model = "landmarks-regression-retail-0009/{}/landmarks-regression-retail-0009"\
@@ -72,33 +77,58 @@ def declare_models(selected_precision,models_path):
     else:
         raise ValueError('No valid model precision seleted')
     
-
+    fd_model = "face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001"
     fd = FaceDetection(models_path+fd_model)
     fl = LandmarkDetection(models_path+fland_model) 
     hp = PoseEstimation(models_path+head_pose)
     gz = GazeEstimation(models_path+gaze_model)
 
-def print_values(output_image,value_dic):
-    y_pos = 0
-    for value in value_dic:
-        text = value+str(value_dic[value])
-        y_pos+=20
-        cv2.putText(output_image, str(text), (20,y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1) 
 
-def get_mouse_coordinates(batch):
+def get_load_time():
+    global df
+    #LOADING MODELS and BENCHMARKING
+    #Face detection  
+    fd_start_load_time=time.time()
+    fd.load_model()
+    df["face_detection"]["loading_time"] = round(time.time()-fd_start_load_time,3)
+
+    #Facial landmarks detection
+    fl_start_load_time=time.time()
+    fl.load_model()
+    df["face_landmarks"]["loading_time"] = round(time.time()-fl_start_load_time,3)
+
+    #Head pose estimation
+    hp_start_load_time=time.time() 
+    hp.load_model()
+    df["headpose_estimation"]["loading_time"] = round(time.time()-hp_start_load_time,3)
+
+    #Gaze estimation model
+    gaze_start_load_time=time.time() 
+    gz.load_model()
+    df["gaze_estimation"]["loading_time"] = round(time.time()-gaze_start_load_time,3)
+    
+
+
+def get_inference_coordinates(batch):
     """
-    Run model inference pipeline
-    Return x, y coordinates from gaze estimation model
+    This Funtion goes through each models and caluclates the inference time.
+
+    It starts by detecting the face, and cropping it.
+    Then cropping the eyes and accordingly their angle.
+    Next is the gaze estimation time.
+    Finally it calls another funciton to print the output on the video
     """
-    output = batch.copy()
     global df
 
-    #GETTING THE FACE and measure time. 
+    output = batch.copy()
+    
+
+    #Inference for face detection 
     fd_start_inference_time=time.time()
-    face_coords, image = fd.predict(batch) #inference
+    face_coords, image = fd.predict(batch) 
     df["face_detection"]["inference_time"] += round(time.time()-fd_start_inference_time,3)
 
-    ##CROPPING THE FACE - set to first one detected. 
+    #Crop the detcted Face
     cropped_face_img = image[face_coords[0][1]:face_coords[0][3], 
                         face_coords[0][0]:face_coords[0][2]]
     
@@ -128,41 +158,28 @@ def get_mouse_coordinates(batch):
                     "Gaze estimation values: ":gaze_outputs,
                     "Accum inference time(s): ": round(df.iloc[1,:].values.sum(),3)}
     print_values(output,value_dic)
+
+
+
     cv2.imshow("Frame",output)
     cv2.waitKey(1)
 
     return gaze_outputs[0][0], gaze_outputs[0][1]
+
+def print_values(output_image,dict):
+    y_pos = 10
+    for value in dict:
+        text = value+str(dict[value])
+        y_pos+=20
+        cv2.putText(output_image, str(text), (20,y_pos), cv2.FONT_HERSHEY_PLAIN, 0.5, (128, 0, 128), 1) 
 
 
 def main():
     args = build_argparser().parse_args()
     declare_models(args.model_precision, args.models_folder)
     global df 
+    get_load_time()
     
-    #LOADING MODELS and BENCHMARKING
-    #Face detection  
-    fd_start_load_time=time.time()
-    fd.load_model()
-    df["face_detection"]["loading_time"] = round(time.time()-fd_start_load_time,3)
-
-    #Facial landmarks detection
-    fl_start_load_time=time.time()
-    fl.load_model()
-    df["face_landmarks"]["loading_time"] = round(time.time()-fl_start_load_time,3)
-
-    #Head pose estimation
-    hp_start_load_time=time.time() 
-    hp.load_model()
-    df["headpose_estimation"]["loading_time"] = round(time.time()-hp_start_load_time,3)
-
-    #Gaze estimation model
-    gaze_start_load_time=time.time() 
-    gz.load_model()
-    df["gaze_estimation"]["loading_time"] = round(time.time()-gaze_start_load_time,3)
-    
-
-
-    #Setting mouse controller
     
     screen_res = pyautogui.size()
     pyautogui.moveTo(int(screen_res[0]/4), int(screen_res[1]/4), duration=1)  
@@ -174,7 +191,7 @@ def main():
     for batch in feed.next_batch():
         if batch is not None: 
             #MOVING THE MOUSE
-            x_coord, y_coord  = get_mouse_coordinates(batch)
+            x_coord, y_coord  = get_coordinates(batch)
             controller.move(x_coord,y_coord)
         else:
             feed.close()
