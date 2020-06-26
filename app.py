@@ -5,8 +5,8 @@ import pyautogui
 
 from src.input_feeder import InputFeeder
 from src.face_detection import FaceDetection
-from src.facial_landmark_detection import LandmarkDetction
-from src.pose_estimation import PoseEstimation
+from src.facial_landmarks_detection import LandmarkDetection
+from src.head_pose_estimation import PoseEstimation
 from src.gaze_estimation import GazeEstimation
 from src.mouse_controller import MouseController
 from argparse import ArgumentParser
@@ -75,7 +75,7 @@ def declare_models(selected_precision,models_path):
 
     fd = FaceDetection(models_path+fd_model)
     fl = LandmarkDetection(models_path+fland_model) 
-    hp = PozeEtimation(models_path+head_pose)
+    hp = PoseEstimation(models_path+head_pose)
     gz = GazeEstimation(models_path+gaze_model)
 
 def print_values(output_image,value_dic):
@@ -115,7 +115,7 @@ def get_mouse_coordinates(batch):
 
     #RUNNING GAZE ESTIMATION and measure time.
     gaze_start_inference_time=time.time()
-    gaze_outputs = gaze.predict(left_eye, right_eye, head_pose_angles) #inference
+    gaze_outputs = gz.predict(left_eye, right_eye, head_pose_angles) #inference
     df["gaze_estimation"]["inference_time"] += round(time.time()-gaze_start_inference_time,3)
     
     #Printing values on screen
