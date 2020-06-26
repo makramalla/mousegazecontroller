@@ -191,7 +191,7 @@ def main():
     for batch in feed.next_batch():
         if batch is not None: 
             #MOVING THE MOUSE
-            x_coord, y_coord  = get_coordinates(batch)
+            x_coord, y_coord  = get_inference_coordinates(batch)
             controller.move(x_coord,y_coord)
         else:
             feed.close()
