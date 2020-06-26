@@ -11,6 +11,7 @@ from src.gaze_estimation import GazeEstimationModel
 from src.mouse_controller import MouseController
 from argparse import ArgumentParser
 
+
 video_path = "bin/demo.mp4"
 models_path = "models/intel/"
 
@@ -49,7 +50,7 @@ def build_argparser():
 
 def declare_models(selected_precision,models_path):
     """
-    Select model based on model precision input
+    
     """
     global fd, fl, hp, gaze
 
