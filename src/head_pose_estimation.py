@@ -6,7 +6,7 @@ class PoseEstimation:
     '''
     Class for the Head Pose Estimation Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, device, extensions=None):
         self.model_weights=model_name+'.bin'
         self.model_structure=model_name+'.xml'
         self.device= device

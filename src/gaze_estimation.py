@@ -6,11 +6,10 @@ class GazeEstimation:
     '''
     Class for the Gaze Estimation Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, device, extensions=None):
         self.model_weights=model_name+'.bin'
         self.model_structure=model_name+'.xml'
         self.device= device
-        self.threshold= 0.5
         self.request_id=0
         self.num_requests=1 
         self.ie = IECore()

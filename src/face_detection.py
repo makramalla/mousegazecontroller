@@ -6,7 +6,7 @@ class FaceDetection:
     '''
     Class for the Face Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, device, extensions=None):
         self.model_weights=model_name+'.bin'
         self.model_structure=model_name+'.xml'
         self.device= device
@@ -46,16 +46,7 @@ class FaceDetection:
 
         coords = self.preprocess_output(outputs)
         
-        self.draw_outputs(coords, image)
         return coords, image
-
-    def draw_outputs(self, coords, image):
-        color = (255, 0, 0) 
-        thickness = 4
-        for box in coords:
-            cv2.rectangle(image, (box[0],box[1]), (box[2], box[3]), color, thickness)
-            cv2.putText(image, 'Face', (box[0]+2,box[1]+12), cv2.FONT_HERSHEY_SIMPLEX, 
-                        1, (0, 255, 0), 2)
 
     def preprocess_input(self, image):
         input_img = cv2.resize(image, (self.input_shape[3], self.input_shape[2]), 

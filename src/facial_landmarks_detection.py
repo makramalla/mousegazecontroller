@@ -6,7 +6,7 @@ class LandmarkDetection:
     '''
     Class for the Facial Landmarks Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, device, extensions=None):
         self.model_weights=model_name+'.bin'
         self.model_structure=model_name+'.xml'
         self.device= device
@@ -45,7 +45,7 @@ class LandmarkDetection:
         
         landmarks = self.preprocess_output(outputs)
 
-        #self.draw_outputs(landmarks, image) #Testing
+        
         left_eye, right_eye = self.crop_eyes(landmarks, image)
 
         return landmarks, left_eye, right_eye
@@ -56,26 +56,6 @@ class LandmarkDetection:
         input_img = np.moveaxis(input_img, -1, 0)
         return input_img
 
-    def draw_outputs(self, coords, image):
-        #Function for testing 
-        color = (255, 0, 0) 
-        thickness = 1
-        apotema = 20
-
-        le_center = coords[0]
-        re_center = coords[1]
-        left_eye_square = [(le_center[0]-apotema, le_center[1]-apotema),
-                         (le_center[0]+apotema, le_center[1]+apotema)]
-        right_eye_square = [(re_center[0]-apotema, re_center[1]-apotema),
-                         (re_center[0]+apotema, re_center[1]+apotema)]
-
-        #Printing eye centers    
-        cv2.circle(image, le_center, radius=3, color=color, thickness=thickness)
-        cv2.circle(image, re_center, radius=3, color=color, thickness=thickness)
-
-        #Printing eye squares    
-        cv2.rectangle(image, left_eye_square[0], left_eye_square[1], color, thickness)
-        cv2.rectangle(image, right_eye_square[0], right_eye_square[1], color, thickness)
     
     def crop_eyes(self, landmarks, image):
         #Left and right  eye points

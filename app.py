@@ -45,6 +45,8 @@ def build_argparser():
     parser.add_argument("--input_file", required=False, type=str,
                         default="bin/demo.mp4",
                         help="Path to video file to be used")
+    parser.add_argument("--device", required=True, type=str, default="CPU",
+                        help="Specify the target device to infer on:CPU, GPU, FPGA or MYRIAD is acceptable")
     parser.add_argument("--model_precision", required=False, type=str,
                         default="FP32",
                         help="Model precision options: FP32, FP16")
@@ -57,7 +59,7 @@ def build_argparser():
     return parser
 
 
-def declare_models(selected_precision,models_path):
+def create_models(selected_precision,models_path, device):
     """
     Model options available are either FP16 or FP32
     """
@@ -78,10 +80,10 @@ def declare_models(selected_precision,models_path):
         raise ValueError('No valid model precision seleted')
     
     fd_model = "face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001"
-    fd = FaceDetection(models_path+fd_model)
-    fl = LandmarkDetection(models_path+fland_model) 
-    hp = PoseEstimation(models_path+head_pose)
-    gz = GazeEstimation(models_path+gaze_model)
+    fd = FaceDetection(models_path+fd_model, device)
+    fl = LandmarkDetection(models_path+fland_model, device) 
+    hp = PoseEstimation(models_path+head_pose, device)
+    gz = GazeEstimation(models_path+gaze_model, device)
 
 
 def get_load_time():
@@ -160,10 +162,10 @@ def inference_get_coordinates(batch):
     #print("gaze model outputs: ",gaze_outputs)
     output = cv2.resize(output, (1080, 600), interpolation = cv2.INTER_AREA)
     
-    value_dic = {"Face coordinates: ": face_coords, 
-                    "Face landmarks (eyes only): ":landmarks,
+    value_dic = {"Face Cropcoordinates: ": face_coords, 
+                    "eyex Coordinates: ":landmarks,
                     "Head pose angels: ":head_pose_angles,
-                    "Gaze estimation values: ":gaze_outputs}
+                    "Gaze Estimation: ":gaze_outputs}
     
     #Prinitng on Screen
     y_pos = 10
@@ -178,18 +180,11 @@ def inference_get_coordinates(batch):
     return gaze_outputs[0][0], gaze_outputs[0][1]
     
 
-
-def print_values(output_image,dict):
-    y_pos = 10
-    for value in dict:
-        text = value+str(dict[value])
-        y_pos+=20
-        cv2.putText(output_image, str(text), (20,y_pos), cv2.FONT_HERSHEY_PLAIN, 0.5, (128, 0, 128), 1) 
-
-
 def main():
     args = build_argparser().parse_args()
-    declare_models(args.model_precision, args.models_folder)
+
+
+    create_models(args.model_precision, args.models_folder, args.device)
     global df 
     get_load_time()
     
@@ -197,7 +192,7 @@ def main():
     screen_res = pyautogui.size()
     pyautogui.moveTo(int(screen_res[0]/4), int(screen_res[1]/4), duration=1)  
     
-    controller = MouseController(precision=args.mouse_precision, speed=args.mouse_speed)
+    mousecontroller = MouseController(precision=args.mouse_precision, speed=args.mouse_speed)
 
     feed=InputFeeder(input_type=args.input_type, input_file=args.input_file)
     feed.load_data()
@@ -205,7 +200,7 @@ def main():
         if batch is not None: 
             #MOVING THE MOUSE
             x_coord, y_coord  = inference_get_coordinates(batch)
-            controller.move(x_coord,y_coord)
+            mousecontroller.move(x_coord,y_coord)
         else:
             feed.close()
             break
