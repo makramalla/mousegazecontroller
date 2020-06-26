@@ -5,12 +5,11 @@ import pyautogui
 
 from src.input_feeder import InputFeeder
 from src.face_detection import FaceDetection
-from src.landmark_detection import FacialLandmarks
-from src.pose_estimation import HeadPoseModel
-from src.gaze_estimation import GazeEstimationModel
+from src.facial_landmark_detection import LandmarkDetction
+from src.pose_estimation import PoseEstimation
+from src.gaze_estimation import GazeEstimation
 from src.mouse_controller import MouseController
 from argparse import ArgumentParser
-
 
 video_path = "bin/demo.mp4"
 models_path = "models/intel/"
@@ -38,7 +37,7 @@ def build_argparser():
                         help="Path to video file to be used")
     parser.add_argument("--model_precision", required=False, type=str,
                         default="FP32",
-                        help="Model precision options: FP32, FP16, INT8")
+                        help="Model precision options: FP32, FP16")
     parser.add_argument("--mouse_precision", required=False, type=str,
                         default="high",
                         help="Set Mouse Precision")
@@ -50,13 +49,12 @@ def build_argparser():
 
 def declare_models(selected_precision,models_path):
     """
-    
+    Model options available are either FP16 or FP32
     """
-    global fd, fl, hp, gaze
+    global fd, fl, hp, gz
 
     valid_values = {"FP32":"FP32",
-                    "FP16":"FP16",
-                    "INT8":"FP16-INT8"}
+                    "FP16":"FP16",}
     
     #Unique option for face detection.
     
@@ -76,9 +74,9 @@ def declare_models(selected_precision,models_path):
     
 
     fd = FaceDetection(models_path+fd_model)
-    fl = FacialLandmarks(models_path+fland_model) 
-    hp = HeadPoseModel(models_path+head_pose)
-    gaze = GazeEstimationModel(models_path+gaze_model)
+    fl = LandmarkDetection(models_path+fland_model) 
+    hp = PozeEtimation(models_path+head_pose)
+    gz = GazeEstimation(models_path+gaze_model)
 
 def print_values(output_image,value_dic):
     y_pos = 0
@@ -159,7 +157,7 @@ def main():
 
     #Gaze estimation model
     gaze_start_load_time=time.time() 
-    gaze.load_model()
+    gz.load_model()
     df["gaze_estimation"]["loading_time"] = round(time.time()-gaze_start_load_time,3)
     
 

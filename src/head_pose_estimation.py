@@ -2,15 +2,14 @@ import cv2
 import numpy as np
 from openvino.inference_engine import IENetwork, IECore
 
-class GazeEstimation:
+class PoseEstimation:
     '''
-    Class for the Gaze Estimation Model.
+    Class for the Head Pose Estimation Model.
     '''
     def __init__(self, model_name, device='CPU', extensions=None):
         self.model_weights=model_name+'.bin'
         self.model_structure=model_name+'.xml'
         self.device= device
-        self.threshold= 0.5
         self.request_id=0
         self.num_requests=1 
         self.ie = IECore()
@@ -19,7 +18,8 @@ class GazeEstimation:
         self.extensions = extensions
 
         self.check_model()
-        self.output_name=next(iter(self.net.outputs))
+        self.input_name=next(iter(self.net.inputs))
+        self.input_shape=self.net.inputs[self.input_name].shape
         
 
     def check_model(self):
@@ -30,21 +30,28 @@ class GazeEstimation:
 
 
     def load_model(self):
-        self.exec_net = self.ie.load_network(network=self.net, device_name=self.device, num_requests=self.num_requests)
+        self.exec_net = self.ie.load_network(network=self.net, 
+                        device_name=self.device, num_requests=self.num_requests)
 
 
-    def predict(self, left_eye_img, right_eye_img, angles_vector):
-        input_dict={'head_pose_angles': angles_vector,
-                    'left_eye_image': self.preprocess_input(left_eye_img),
-                    'right_eye_image':self.preprocess_input(right_eye_img)}    
+    def predict(self, image):
+        
+        preprocessed_image = self.preprocess_input(image)
+        input_dict={self.input_name: preprocessed_image}
 
         self.exec_net.requests[self.request_id].infer(input_dict)
+
+        yaw = self.exec_net.requests[self.request_id].outputs["angle_y_fc"]
+        pitch = self.exec_net.requests[self.request_id].outputs["angle_p_fc"]
+        roll = self.exec_net.requests[self.request_id].outputs["angle_r_fc"]
         
-        return self.exec_net.requests[self.request_id].outputs[self.output_name]
+        angles = np.array([yaw[0][0], pitch[0][0], roll[0][0]]).reshape(1,3)
+
+        return angles
 
 
     def preprocess_input(self, image):
-        input_img = cv2.resize(image, (60, 60), 
+        input_img = cv2.resize(image, (self.input_shape[3], self.input_shape[2]), 
                                 interpolation = cv2.INTER_AREA) 
         input_img = np.moveaxis(input_img, -1, 0)
         return input_img
