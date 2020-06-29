@@ -1,6 +1,14 @@
 # Computer Pointer Controller
 
-*TODO:* Write a short introduction to your project
+This Project uses a series of OpenVino models to detect a person's eye's gazes either form a video or from a WebCam to control PC's mouse movements.
+The models used to achieve this setup are the following:
+- [Face Detection Model](https://docs.openvinotoolkit.org/latest/_models_intel_face_detection_adas_binary_0001_description_face_detection_adas_binary_0001.html)
+- [Head Pose Estimation Model](https://docs.openvinotoolkit.org/latest/_models_intel_head_pose_estimation_adas_0001_description_head_pose_estimation_adas_0001.html)
+- [Landmarks Detection model](https://docs.openvinotoolkit.org/latest/_models_intel_landmarks_regression_retail_0009_description_landmarks_regression_retail_0009.html)
+- [Gaze Estimation Model](https://docs.openvinotoolkit.org/2019_R1/_gaze_estimation_adas_0002_description_gaze_estimation_adas_0002.html)
+
+The Algorithm Pipline looks like this:
+![Pipeline](https://github.com/makramalla/mousegazecontroller/blob/master/Pipeline.png?raw=true)
 
 ## Project Set Up and Installation
 *TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
