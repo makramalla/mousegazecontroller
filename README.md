@@ -11,13 +11,41 @@ The Algorithm Pipline looks like this:
 ![Pipeline](https://github.com/makramalla/mousegazecontroller/blob/master/Pipeline.png?raw=true)
 
 ## Project Set Up and Installation
-*TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
+This Project was crated on an Ubuntu 18.04 Desktop VM, but can also be used on Windows, while making sure the correct software and packages are properly installed.
+Initially, OpenVion has to be installe on the created Linux Envioment whihc can be found in [this link](https://docs.openvinotoolkit.org/2018_R5/_docs_install_guides_installing_openvino_linux.html)
+
+After cloning this repository the user would have to simply run the prepare.sh file which makes sure that all the required packages are installed and the models are properly downloded.:
+```bash
+./prepare.sh
+```
+Note: if certain packages are not installed the script may ask for sudo authentication.
+
+Once everything is in place the user can go ahead and start running the app.py script which has the following required options:
+- input_type: can either be video or CAM
+-- in case the input type is video an input_file has to be provided
+- mode_precision: FP16 or FP32
+- models_folder: the path where all the models are downloaded (in the scenario where the prepare.sh was used the path would be <path_to_repo>/models/intel/)
+- device: the hardware used for model loading and inference (CPU, GPU,.. etc)
 
 ## Demo
-*TODO:* Explain how to run a basic demo of your model.
-
-## Documentation
-*TODO:* Include any documentation that users might need to better understand your project code. For instance, this is a good place to explain the command line arguments that your project supports.
+As am example for running the project:
+```bash
+python3 app.py --input_type video --input_file bin/demo.mp4  --model_precision FP16 --models_folder models/intel/ --device CPU
+```
+This starts the projects and provides two different outputs:
+- Controlling the mouse movements using the Webcam **OR** produces an output video that displays the coordinates of the mouse based on the processed input video
+![GazeEstimationCoordinates](https://github.com/makramalla/mousegazecontroller/blob/master/Gaze-Coordinates.png?raw=true)
+- Model Loading and Inference Time for eeach model for further analysis
+```bash
+The model load time for the FaceDetection Model is 0.217 seconds
+The model load time for the LandMarks Model is 0.093 seconds
+The model load time for the HeadPoseEstimation Model is 0.11 seconds
+The model load time for the GazeEstimation Model is 0.132 seconds
+The model inference time for the FaceDetection Model is 0.027 seconds
+The model inference time for the LandMarks Model is 0.001 seconds
+The model inference time for the HeadPose Model is 0.003 seconds
+The model inference time for the GazeEstimation Model is 0.002 seconds
+```
 
 ## Benchmarks
 *TODO:* Include the benchmark results of running your model on multiple hardwares and multiple model precisions. Your benchmarks can include: model loading time, input/output processing time, model inference time etc.

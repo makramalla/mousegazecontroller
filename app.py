@@ -94,7 +94,6 @@ def get_load_time():
     fd_start_load_time=time.time()
     fd.load_model()
     df["face_detection"]["loading_time"] = round(time.time()-fd_start_load_time,3)
-    print(df["face_detection"]["loading_time"])
     print("The model load time for the FaceDetection Model is %s seconds" % df["face_detection"]["loading_time"])
 
     #Facial landmarks detection
