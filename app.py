@@ -49,7 +49,7 @@ def build_argparser():
                         help="Specify the target device to infer on:CPU, GPU, FPGA or MYRIAD is acceptable")
     parser.add_argument("--model_precision", required=False, type=str,
                         default="FP32",
-                        help="Model precision options: FP32, FP16")
+                        help="Model precision options: FP32, FP16 or FP16-INT8")
     parser.add_argument("--mouse_precision", required=False, type=str,
                         default="high",
                         help="Set Mouse Precision")
@@ -65,7 +65,8 @@ def create_models(selected_precision,models_path, device):
     """
     global fd, fl, hp, gz
 
-    valid_values = {"FP32":"FP32",
+    valid_values = {"INT8":"FP16-INT8",
+                    "FP32":"FP32",
                     "FP16":"FP16",}
     
     #Applying user selection.

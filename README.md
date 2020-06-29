@@ -23,23 +23,23 @@ Note: if certain packages are not installed the script may ask for sudo authenti
 Once everything is in place the user can go ahead and start running the app.py script which has the following required options:
 - input_type: can either be video or CAM
 -- in case the input type is video an input_file has to be provided
-- mode_precision: FP16 or FP32
+- mode_precision: FP16,  FP32 or INT8
 - models_folder: the path where all the models are downloaded (in the scenario where the prepare.sh was used the path would be <path_to_repo>/models/intel/)
 - device: the hardware used for model loading and inference (CPU, GPU,.. etc)
 
 ## Demo
 As am example for running the project:
-```bash
+```console
 python3 app.py --input_type video --input_file bin/demo.mp4  --model_precision FP16 --models_folder models/intel/ --device CPU
 ```
 This starts the projects and provides two different outputs:
 - Controlling the mouse movements using the Webcam **OR** produces an output video that displays the coordinates of the mouse based on the processed input video
 ![GazeEstimationCoordinates](https://github.com/makramalla/mousegazecontroller/blob/master/Gaze-Coordinates.png?raw=true)
 - Model Loading and Inference Time for eeach model for further analysis
-```bash
+```console
 The model load time for the FaceDetection Model is 0.217 seconds
 The model load time for the LandMarks Model is 0.093 seconds
-The model load time for the HeadPoseEstimation Model is 0.11 seconds
+The model load time for the HeadPoseEstimation Model is 0.110 seconds
 The model load time for the GazeEstimation Model is 0.132 seconds
 The model inference time for the FaceDetection Model is 0.027 seconds
 The model inference time for the LandMarks Model is 0.001 seconds
@@ -48,16 +48,54 @@ The model inference time for the GazeEstimation Model is 0.002 seconds
 ```
 
 ## Benchmarks
-*TODO:* Include the benchmark results of running your model on multiple hardwares and multiple model precisions. Your benchmarks can include: model loading time, input/output processing time, model inference time etc.
+The average model Loading Time after running the application several times is the following:
+### Model Loading Time
 
+#### FP32 in ms
+
+| FaceDetection | LandMarks |HeadPoseEstimation  |GazeEstimation  |
+| ------------- |:-------------:| -----:|-----:|
+| 177   | 82 | 83| 113 |
+
+#### FP16 in ms
+| FaceDetection | LandMarks |HeadPoseEstimation  |GazeEstimation  |
+| ------------- |:-------------:| -----:|-----:|
+| 181    | 82 | 98| 125 |
+
+#### INT8 in ms
+| FaceDetection | LandMarks |HeadPoseEstimation  |GazeEstimation  |
+| ------------- |:-------------:| -----:|-----:|
+| 218     | 95 |161| 192|
+
+
+
+### Model Inference Time FP32 in ms
+#### FP32 in ms
+
+| FaceDetection | LandMarks |HeadPoseEstimation  |GazeEstimation  |
+| ------------- |:-------------:| -----:|-----:|
+| 24    | 6 | 3| 2 |
+
+#### FP16 in ms
+| FaceDetection | LandMarks |HeadPoseEstimation  |GazeEstimation  |
+| ------------- |:-------------:| -----:|-----:|
+| 125     | 8 | 9| 14 |
+
+#### INT8 in ms
+| FaceDetection | LandMarks |HeadPoseEstimation  |GazeEstimation  |
+| ------------- |:-------------:| -----:|-----:|
+| 60     | 20 |12| 9|
+
+
+
+In my case, The VM only had a CPU to test with. Further analysis can be made using differnt hardware
 ## Results
-*TODO:* Discuss the benchmark results and explain why you are getting the results you are getting. For instance, explain why there is difference in inference time for FP32, FP16 and INT8 models.
-
-## Stand Out Suggestions
-This is where you can provide information about the stand out suggestions that you have attempted.
-
-### Async Inference
-If you have used Async Inference in your code, benchmark the results and explain its effects on power and performance of your project.
-
+<MISSING>
 ### Edge Cases
-There will be certain situations that will break your inference flow. For instance, lighting changes or multiple people in the frame. Explain some of the edge cases you encountered in your project and how you solved them to make your project more robust.
+This model was developed in a way to take only the first face it captures and uses is to get the eyes and landmarks
+## Stand Out Suggestions
+A suggestion fro improvement is to design it in a way to allow the program to take the main face in the captures video stream to be used. This can be done by cropping out the largest face with the most clear featrues.
+As an addiotnal suggestion, a hand gesture may be introduced that would trigger mouse tracking and movemenets.
+
+
+
