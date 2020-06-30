@@ -32,10 +32,10 @@ class GazeEstimation:
         self.exec_net = self.ie.load_network(network=self.net, device_name=self.device, num_requests=self.num_requests)
 
 
-    def predict(self, left_eye_img, right_eye_img, angles_vector):
-        input_dict={'head_pose_angles': angles_vector,
-                    'left_eye_image': self.preprocess_input(left_eye_img),
-                    'right_eye_image':self.preprocess_input(right_eye_img)}    
+    def predict(self, left_eye, right_eye, angles):
+        input_dict={'head_pose_angles': angles,
+                    'left_eye_image': self.preprocess_input(left_eye),
+                    'right_eye_image':self.preprocess_input(right_eye)}    
 
         self.exec_net.requests[self.request_id].infer(input_dict)
         

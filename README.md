@@ -7,12 +7,12 @@ The models used to achieve this setup are the following:
 - [Landmarks Detection model](https://docs.openvinotoolkit.org/latest/_models_intel_landmarks_regression_retail_0009_description_landmarks_regression_retail_0009.html)
 - [Gaze Estimation Model](https://docs.openvinotoolkit.org/2019_R1/_gaze_estimation_adas_0002_description_gaze_estimation_adas_0002.html)
 
-The Algorithm Pipline looks like this:
+The Algorithm Pipeline looks like this:
 ![Pipeline](https://github.com/makramalla/mousegazecontroller/blob/master/Pipeline.png?raw=true)
 
 ## Project Set Up and Installation
 This Project was crated on an Ubuntu 18.04 Desktop VM, but can also be used on Windows, while making sure the correct software and packages are properly installed.
-Initially, OpenVion has to be installe on the created Linux Envioment whihc can be found in [this link](https://docs.openvinotoolkit.org/2018_R5/_docs_install_guides_installing_openvino_linux.html)
+Initially, OpenVino has to be install on the created Linux Environment which can be found in [this link](https://docs.openvinotoolkit.org/2018_R5/_docs_install_guides_installing_openvino_linux.html)
 
 After cloning this repository the user would have to simply run the prepare.sh file which makes sure that all the required packages are installed and the models are properly downloded.:
 ```bash
@@ -35,7 +35,7 @@ python3 app.py --input_type video --input_file bin/demo.mp4  --model_precision F
 This starts the projects and provides two different outputs:
 - Controlling the mouse movements using the Webcam **OR** produces an output video that displays the coordinates of the mouse based on the processed input video
 ![GazeEstimationCoordinates](https://github.com/makramalla/mousegazecontroller/blob/master/Gaze-Coordinates.png?raw=true)
-- Model Loading and Inference Time for eeach model for further analysis
+- Model Loading and Inference Time for each model for further analysis
 ```console
 The model load time for the FaceDetection Model is 0.217 seconds
 The model load time for the LandMarks Model is 0.093 seconds
@@ -88,14 +88,22 @@ The average model Loading Time after running the application several times is th
 
 
 
-In my case, The VM only had a CPU to test with. Further analysis can be made using differnt hardware
+In my case, The VM only had a CPU to test with. Further analysis can be made using different hardware
 ## Results
-<MISSING>
+The first clear observation is that the Face Detection Model is the model that takes up the highest contribution in model load and inference time, which can be explained due to the fact that the other three models just use the cropped output of this model, which makes the remaining process much easier.
+
+THe other clear observation is that there is a disproportional relationship between the FPS rate and the loading and inference time.
+Although it is worth mentioning that in the Inference time for the FP16 was significantly higher than all other rates.
+
+Note: I had to run these times in a loop 1000 times to get the above tables.
+
+
 ### Edge Cases
-This model was developed in a way to take only the first face it captures and uses is to get the eyes and landmarks
-## Stand Out Suggestions
-A suggestion fro improvement is to design it in a way to allow the program to take the main face in the captures video stream to be used. This can be done by cropping out the largest face with the most clear featrues.
-As an addiotnal suggestion, a hand gesture may be introduced that would trigger mouse tracking and movemenets.
+This model was developed in a way to take only the first face it captures and uses is to get the eyes and landmarks.
+It has not been tested thoroughly using two persons in a frame, but it is a fair assumption that it would still only use the first two landmarks (the eyes).
+## Improvement Suggestions
+A suggestion for improvement is to design it in a way to allow the program to take the main face in the captures video stream to be used. This can be done by cropping out the largest face with the most clear features.
+As an additional suggestion, a hand gesture may be introduced that would trigger mouse tracking and movements.
 
 
 
