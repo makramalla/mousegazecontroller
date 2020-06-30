@@ -49,7 +49,7 @@ def build_argparser():
                         help="Specify the target device to infer on:CPU, GPU, FPGA or MYRIAD is acceptable")
     parser.add_argument("--model_precision", required=False, type=str,
                         default="FP32",
-                        help="Model precision options: FP32, FP16 or FP16-INT8")
+                        help="Model precision options: FP32, FP16")
     parser.add_argument("--mouse_precision", required=False, type=str,
                         default="high",
                         help="Set Mouse Precision")
@@ -67,8 +67,8 @@ def create_models(selected_precision,models_path, device):
 
     valid_values = {"INT8":"FP16-INT8",
                     "FP32":"FP32",
-                    "FP16":"FP16",}
-    
+                    "FP16":"FP16"}
+
     #Applying user selection.
     if selected_precision in valid_values:
         fland_model = "landmarks-regression-retail-0009/{}/landmarks-regression-retail-0009"\
@@ -79,10 +79,10 @@ def create_models(selected_precision,models_path, device):
                     .format(valid_values[selected_precision])
     else:
         raise ValueError('No valid model precision seleted')
-    
+
     fd_model = "face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001"
     fd = FaceDetection(models_path+fd_model, device)
-    fl = LandmarkDetection(models_path+fland_model, device) 
+    fl = LandmarkDetection(models_path+fland_model, device)
     hp = PoseEstimation(models_path+head_pose, device)
     gz = GazeEstimation(models_path+gaze_model, device)
 
@@ -91,7 +91,7 @@ def get_load_time():
     global df
 
     #LOADING MODELS and BENCHMARKING
-    #Face detection  
+    #Face detection
     fd_start_load_time=time.time()
     fd.load_model()
     df["face_detection"]["loading_time"] = round(time.time()-fd_start_load_time,3)
@@ -104,19 +104,19 @@ def get_load_time():
     print("The model load time for the LandMarks Model is %s seconds" % df["face_landmarks"]["loading_time"])
 
     #Head pose estimation
-    hp_start_load_time=time.time() 
+    hp_start_load_time=time.time()
     hp.load_model()
     df["headpose_estimation"]["loading_time"] = round(time.time()-hp_start_load_time,3)
     print("The model load time for the HeadPoseEstimation Model is %s seconds" % df["headpose_estimation"]["loading_time"])
 
     #Gaze estimation model
-    gaze_start_load_time=time.time() 
+    gaze_start_load_time=time.time()
     gz.load_model()
     df["gaze_estimation"]["loading_time"] = round(time.time()-gaze_start_load_time,3)
     print("The model load time for the GazeEstimation Model is %s seconds" % df["gaze_estimation"]["loading_time"])
 
-    
-    
+
+
 
 def inference_get_coordinates(batch):
     """
@@ -130,17 +130,17 @@ def inference_get_coordinates(batch):
     global df
 
     output = batch.copy()
-    
 
-    #Inference for face detection 
+
+    #Inference for face detection
     fd_start_inference_time=time.time()
-    face_coords, image = fd.predict(batch) 
+    face_coords, image = fd.predict(batch)
     df["face_detection"]["inference_time"] += round(time.time()-fd_start_inference_time,3)
     print("The model inference time for the FaceDetection Model is %s seconds" % df["face_detection"]["inference_time"])
     #Crop the detcted Face
-    cropped_face_img = image[face_coords[0][1]:face_coords[0][3], 
+    cropped_face_img = image[face_coords[0][1]:face_coords[0][3],
                         face_coords[0][0]:face_coords[0][2]]
-    
+
     #GETTING CROPPED EYES and measure time from cropped face
     fl_start_inference_time=time.time()
     landmarks, left_eye, right_eye = fl.predict(cropped_face_img) #inference
@@ -161,12 +161,12 @@ def inference_get_coordinates(batch):
     #Printing values on screen
     #print("gaze model outputs: ",gaze_outputs)
     output = cv2.resize(output, (1080, 600), interpolation = cv2.INTER_AREA)
-    
-    value_dic = {"Face Cropcoordinates: ": face_coords, 
+
+    value_dic = {"Face Cropcoordinates: ": face_coords,
                     "eyex Coordinates: ":landmarks,
                     "Head pose angels: ":head_pose_angles,
                     "Gaze Estimation: ":gaze_outputs}
-    
+
     #Prinitng on Screen
     y_pos = 10
     for value in value_dic:
@@ -178,34 +178,34 @@ def inference_get_coordinates(batch):
     cv2.waitKey(1)
 
     return gaze_outputs[0][0], gaze_outputs[0][1]
-    
+
 
 def main():
     args = build_argparser().parse_args()
 
 
     create_models(args.model_precision, args.models_folder, args.device)
-    global df 
+    global df
     get_load_time()
-    
-    
+
+
     screen_res = pyautogui.size()
-    pyautogui.moveTo(int(screen_res[0]/4), int(screen_res[1]/4), duration=1)  
-    
+    pyautogui.moveTo(int(screen_res[0]/4), int(screen_res[1]/4), duration=1)
+
     mousecontroller = MouseController(precision=args.mouse_precision, speed=args.mouse_speed)
 
     feed=InputFeeder(input_type=args.input_type, input_file=args.input_file)
     feed.load_data()
     for batch in feed.next_batch():
-        if batch is not None: 
+        if batch is not None:
             #MOVING THE MOUSE
             x_coord, y_coord  = inference_get_coordinates(batch)
             mousecontroller.move(x_coord,y_coord)
         else:
             feed.close()
             break
-    
-    
+
+
     print("Done")
 
 if __name__ == "__main__":

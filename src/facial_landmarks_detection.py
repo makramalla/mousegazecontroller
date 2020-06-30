@@ -46,9 +46,27 @@ class LandmarkDetection:
         landmarks = self.preprocess_output(outputs)
 
         
-        left_eye, right_eye = self.crop_eyes(landmarks, image)
+        #Getting the left and right eyes using only two landmarks
 
-        return landmarks, left_eye, right_eye
+        left_point = landmarks[1]
+        right_point = landmarks[0]
+        #Creating the eyses square using a "Radius" of 20
+        radius = 20
+
+        left_square = [(left_point[0]-radius, left_point[1]-radius),
+                         (left_point[0]+radius, left_point[1]+radius)]
+        right_square = [(right_point[0]-radius, right_point[1]-radius),
+                         (right_point[0]+radius, right_point[1]+radius)]
+
+        left_eye_crop = image[left_square[0][1]:left_square[1][1], 
+                         left_square[0][0]:left_square[1][0]]
+
+        right_eye_crop = image[right_square[0][1]:right_square[1][1], 
+                          right_square[0][0]:right_square[1][0]]
+        
+
+        return landmarks, left_eye_crop, right_eye_crop
+        
 
     def preprocess_input(self, image):
         input_img = cv2.resize(image, (self.input_shape[3], self.input_shape[2]), 
@@ -56,26 +74,6 @@ class LandmarkDetection:
         input_img = np.moveaxis(input_img, -1, 0)
         return input_img
 
-    
-    def crop_eyes(self, landmarks, image):
-        #Left and right  eye points
-        le_center = landmarks[1]
-        re_center = landmarks[0]
-        apotema = 20
-
-        left_square = [(le_center[0]-apotema, le_center[1]-apotema),
-                         (le_center[0]+apotema, le_center[1]+apotema)]
-        right_square = [(re_center[0]-apotema, re_center[1]-apotema),
-                         (re_center[0]+apotema, re_center[1]+apotema)]
-        
-        #Cropping from image
-        left_eye = image[left_square[0][1]:left_square[1][1], 
-                         left_square[0][0]:left_square[1][0]]
-
-        right_eye = image[right_square[0][1]:right_square[1][1], 
-                          right_square[0][0]:right_square[1][0]]
-
-        return left_eye, right_eye
 
     def preprocess_output(self, outputs):
         #Getting only eyes landmarks
